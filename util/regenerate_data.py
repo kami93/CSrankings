@@ -62,6 +62,7 @@ ArticleType = TypedDict('ArticleType', { 'author' : List[str],
                                          'title' : str })
 
 totalPapers = 0 # for statistics reporting purposes only
+output_dict = {}
 authlogs : Dict[str, List[LogType]] = defaultdict(list)
 interestingauthors : Dict[str, int] = defaultdict(int)
 authorscores : Dict[Tuple[str, str, int], float] = defaultdict(float)
@@ -121,6 +122,7 @@ def build_dicts() -> None:
 
 
 def handle_article(_ : Any, article : ArticleType) -> bool: # type: ignore
+    global output_dict
     global counter
     global successes
     global failures
@@ -183,6 +185,16 @@ def handle_article(_ : Any, article : ArticleType) -> bool: # type: ignore
         volume = article.get('volume',"0")
         number = article.get('number',"0")
         url    = article.get('url',"")
+
+        ee = article.get("ee", "")
+        if isinstance(ee, list):
+            ee = ee[0]
+
+        if isinstance(ee, str):
+            paper_link = ee
+        else:
+            paper_link = ee.get('#text',"")   
+
         year   = int(article.get('year',"-1"))
         pages  = ""
         
@@ -240,65 +252,93 @@ def handle_article(_ : Any, article : ArticleType) -> bool: # type: ignore
 
     if countPaper(confname, year, volume, number, pages, startPage, pageCount, url, title):
         totalPapers += 1
+
+        if areaname.upper() not in output_dict:
+            output_dict[areaname.upper()] = {}
+        
+        if str(year) not in output_dict[areaname.upper()]:
+            output_dict[areaname.upper()][str(year)] = []
+        
+        author_list = []
         for authorName in authorList:
-            aName = ""
             if type(authorName) is collections.OrderedDict:
                 aName = authorName["#text"] # type: ignore
             elif type(authorName) is str:
                 aName = authorName
             realName = aliasdict.get(aName, aName)
-            affiliation = ""
-            if realName in facultydict:
-                affiliation = facultydict[realName]
-            elif realName in aliasdict:
-                affiliation = facultydict[aliasdict[realName]]
-            elif realName in reversealiasdict:
-                affiliation = facultydict[reversealiasdict[realName]]
-            facultydict[realName] = affiliation
+            author_list.append(realName)
+
+        output_dict[areaname.upper()][str(year)].append([title, author_list, paper_link, pageCount])
+        # for authorName in authorList:
+        #     aName = ""
+        #     if type(authorName) is collections.OrderedDict:
+        #         aName = authorName["#text"] # type: ignore
+        #     elif type(authorName) is str:
+        #         aName = authorName
+        #     realName = aliasdict.get(aName, aName)
+        #     affiliation = ""
+        #     if realName in facultydict:
+        #         affiliation = facultydict[realName]
+        #     elif realName in aliasdict:
+        #         affiliation = facultydict[aliasdict[realName]]
+        #     elif realName in reversealiasdict:
+        #         affiliation = facultydict[reversealiasdict[realName]]
+        #     facultydict[realName] = affiliation
             
-            if (affiliation and (realName in facultydict or realName in aliasdict or realName in reversealiasdict)) or args.all:
-                log : LogType = { 'name' : realName.encode('utf-8'),
-                                  'year' : year,
-                                  'title' : title.encode('utf-8'),
-                                  'conf' : confname,
-                                  'area' : areaname,
-                                  'institution' : affiliation,
-                                  'numauthors' : authorsOnPaper,
-                                  'volume' : volume,
-                                  'number' : number,
-                                  'startPage' : startPage,
-                                  'pageCount' : pageCount }
-                tmplist : List[LogType] = authlogs.get(realName, [])
-                tmplist.append(log)
-                authlogs[realName] = tmplist
-                interestingauthors[realName] += 1
-                authorscores[(realName, areaname, year)] += 1.0
-                authorscoresAdjusted[(realName, areaname, year)] += 1.0 / authorsOnPaper
+        #     if (affiliation and (realName in facultydict or realName in aliasdict or realName in reversealiasdict)) or args.all:
+        #         log : LogType = { 'name' : realName.encode('utf-8'),
+        #                           'year' : year,
+        #                           'title' : title.encode('utf-8'),
+        #                           'conf' : confname,
+        #                           'area' : areaname,
+        #                           'institution' : affiliation,
+        #                           'numauthors' : authorsOnPaper,
+        #                           'volume' : volume,
+        #                           'number' : number,
+        #                           'startPage' : startPage,
+        #                           'pageCount' : pageCount }
+        #         tmplist : List[LogType] = authlogs.get(realName, [])
+        #         tmplist.append(log)
+        #         authlogs[realName] = tmplist
+        #         interestingauthors[realName] += 1
+        #         authorscores[(realName, areaname, year)] += 1.0
+        #         authorscoresAdjusted[(realName, areaname, year)] += 1.0 / authorsOnPaper
     return True
 
 def dump_it() -> None:
+    global output_dict
     global authorscores
     global authorscoresAdjusted
     global authlogs
     global interestingauthors
     global facultydict
-    with open('generated-author-info.csv','w') as f:
-        f.write('"name","dept","area","count","adjustedcount","year"\n')
-        authorscores = collections.OrderedDict(sorted(authorscores.items()))
-        for ((authorName, area, year), count) in authorscores.items():
-            countAdjusted = authorscoresAdjusted[(authorName, area, year)]
-            f.write(f"{authorName},{facultydict[authorName]},{area},{count},{countAdjusted:1.5},{year}\n")
 
-    with open('articles.json','w') as f:
-        z = []
-        authlogs = collections.OrderedDict(sorted(authlogs.items()))
-        for v, l in authlogs.items():
-            if v in interestingauthors:
-                for s in sorted(l, key=lambda x: x['name'].decode('utf-8')+str(x['year'])+x['conf']+x['title'].decode('utf-8')): # type: ignore
-                    s['name'] = s['name'].decode('utf-8') # type: ignore
-                    s['title'] = s['title'].decode('utf-8') # type: ignore
-                    z.append(s)
-        json.dump(z, f, indent=2)
+    import pathlib
+    for conf, conf_dict in output_dict.items():
+        for year, year_dict in conf_dict.items():
+            output_file = pathlib.Path(f'./database/{conf.upper()}/{conf.lower()}{year}.json')
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+
+            with output_file.open('w') as f:
+                json.dump(year_dict, f)
+
+    # with open('generated-author-info.csv','w') as f:
+    #     f.write('"name","dept","area","count","adjustedcount","year"\n')
+    #     authorscores = collections.OrderedDict(sorted(authorscores.items()))
+    #     for ((authorName, area, year), count) in authorscores.items():
+    #         countAdjusted = authorscoresAdjusted[(authorName, area, year)]
+    #         f.write(f"{authorName},{facultydict[authorName]},{area},{count},{countAdjusted:1.5},{year}\n")
+
+    # with open('articles.json','w') as f:
+    #     z = []
+    #     authlogs = collections.OrderedDict(sorted(authlogs.items()))
+    #     for v, l in authlogs.items():
+    #         if v in interestingauthors:
+    #             for s in sorted(l, key=lambda x: x['name'].decode('utf-8')+str(x['year'])+x['conf']+x['title'].decode('utf-8')): # type: ignore
+    #                 s['name'] = s['name'].decode('utf-8') # type: ignore
+    #                 s['title'] = s['title'].decode('utf-8') # type: ignore
+    #                 z.append(s)
+    #     json.dump(z, f, indent=2)
 
 def main() -> None:
     build_dicts()

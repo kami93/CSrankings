@@ -40,6 +40,7 @@
 //article[journal="PoPETs"],
 //article[journal="Proc. Priv. Enhancing Technol."],
 //inproceedings[booktitle="CHI"],
+//inproceedings[booktitle="HUC"],
 //inproceedings[booktitle="UbiComp"],
 //inproceedings[booktitle="Ubicomp"],
 //inproceedings[booktitle="Pervasive"],
@@ -176,7 +177,21 @@
 //inproceedings[booktitle="ECCV (30)"],
 //inproceedings[booktitle="SIGCSE"],
 //inproceedings[booktitle="EC"],
-//inproceedings[booktitle="WINE"]}</dblp>
+//inproceedings[booktitle="WINE"],
+//inproceedings[booktitle="CIKM"],
+//inproceedings[booktitle="ICDM"],
+//inproceedings[booktitle="CoNEXT"],
+//inproceedings[booktitle="INFOCOM"],
+//inproceedings[booktitle="MobiHoc"],
+//inproceedings[booktitle="ICASSP"],
+//inproceedings[booktitle="INTERSPEECH"],
+//inproceedings[booktitle="ICALP"],
+//inproceedings[booktitle="HRI"],
+//inproceedings[booktitle="AISTATS"],
+//inproceedings[booktitle="COLT"],
+//inproceedings[booktitle="ICLR"],
+//inproceedings[booktitle="UAI"],
+//inproceedings[booktitle="BMVC"]}</dblp>
 ]]>
 </xquery>
 <close />

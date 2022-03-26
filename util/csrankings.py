@@ -191,6 +191,7 @@ areadict : Dict[Area, List[Conference]] = {
     # 'chi': ['CHI', 'UbiComp', 'Ubicomp', 'UIST', 'IMWUT', 'Pervasive'],
     Area("chiconf"): [Conference("CHI")],
     Area("ubicomp"): [
+        Conference("HUC"),
         Conference("UbiComp"),
         Conference("Ubicomp"),
         Conference("IMWUT"),
@@ -278,8 +279,24 @@ areadict : Dict[Area, List[Conference]] = {
     Area("vr"): [Conference("VR")],
     # 'ecom' : ['EC', 'WINE']
     Area("ec"): [Conference("EC")],
-    Area("wine"): [Conference("WINE")]
+    Area("wine"): [Conference("WINE")],
     # ,'cse' : ['SIGCSE']
+    Area("wsdm"): [Conference("WSDM")],
+    Area("cscw"): [Conference("CSCW")],
+    Area("cikm"): [Conference("CIKM")],
+    Area("conext"): [Conference("CoNEXT")],
+    Area("infocom"): [Conference("INFOCOM")],
+    Area("mobihoc"): [Conference("MobiHoc")],
+    Area("icdm"): [Conference("ICDM")],
+    Area("icassp"): [Conference("ICASSP")],
+    Area("interspeech"): [Conference("INTERSPEECH")],
+    Area("icalp"): [Conference("ICALP")],
+    Area("hri"): [Conference("HRI")],
+    Area("aistats"): [Conference("AISTATS")],
+    Area("colt"): [Conference("COLT")],
+    Area("iclr"): [Conference("ICLR")],
+    Area("uai"): [Conference("UAI")],
+    Area("bmvc"): [Conference("BMVC")]
 }
 
 # EMSOFT is now published as a special issue of TECS *or* IEEE TCAD in a particular page range.
